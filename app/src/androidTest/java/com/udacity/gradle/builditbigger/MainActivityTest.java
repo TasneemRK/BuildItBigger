@@ -9,6 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.*;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.*;
+
+
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -16,12 +22,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import java.util.concurrent.TimeUnit;
+
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.not;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -35,11 +42,6 @@ public class MainActivityTest {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
-        try {
-            Thread.sleep(60000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         ViewInteraction appCompatButton = onView(
                 allOf(withText("Tell Joke"),
@@ -50,8 +52,21 @@ public class MainActivityTest {
                                                 0)),
                                 1),
                         isDisplayed()));
-        appCompatButton.perform(click());
+        // passes if the textView does not match the empty string
+        onView(withId(R.id.joke_text)).check(matches(not(withText(""))));
 
+        try {
+            JokeAsyncTask task = new JokeAsyncTask();
+            task.execute();
+            String joke = task.get(30, TimeUnit.SECONDS);
+
+            assertNotNull(joke);
+            assertTrue(joke.length() > 0);
+        } catch (Exception e) {
+            fail("Operation timed out");
+        }
+
+        appCompatButton.perform(click());
     }
 
     private static Matcher<View> childAtPosition(

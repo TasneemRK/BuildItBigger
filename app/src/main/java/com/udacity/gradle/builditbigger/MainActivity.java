@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.Toast;
 
 import bakingapp.android.com.displayjokesandroidlib.DisplayJokeActivity;
-import bakingapp.android.com.showjokeslib.Joke;
 
 
 public class MainActivity extends AppCompatActivity {
